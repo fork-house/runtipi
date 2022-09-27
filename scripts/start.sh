@@ -170,6 +170,8 @@ ENV_FILE=$(mktemp)
 JWT_SECRET=$(derive_entropy "jwt")
 POSTGRES_PASSWORD=$(derive_entropy "postgres")
 TIPI_VERSION=$(get_json_field "${ROOT_FOLDER}/package.json" version)
+STORAGE_PATH="${ROOT_FOLDER}/app-data"
+STORAGE_PATH_ESCAPED="$(echo "${STORAGE_PATH}" | sed 's/\//\\\//g')"
 
 # Override vars with values from settings.json
 if [[ -f "${STATE_FOLDER}/settings.json" ]]; then
@@ -208,6 +210,12 @@ if [[ -f "${STATE_FOLDER}/settings.json" ]]; then
   if [[ "$(get_json_field "${STATE_FOLDER}/settings.json" listenIp)" != "null" ]]; then
     INTERNAL_IP=$(get_json_field "${STATE_FOLDER}/settings.json" listenIp)
   fi
+
+  # If storagePath is set in settings.json, use it
+  if [[ "$(get_json_field "${STATE_FOLDER}/settings.json" storagePath)" != "null" ]]; then
+    storage_path="$(get_json_field "${STATE_FOLDER}/settings.json" storagePath)"
+    STORAGE_PATH_ESCAPED="$(echo "${storage_path}" | sed 's/\//\\\//g')"
+  fi
 fi
 
 echo "Creating .env file with the following values:"
@@ -225,6 +233,7 @@ echo "  POSTGRES_PASSWORD=<redacted>"
 echo "  TIPI_VERSION=${TIPI_VERSION}"
 echo "  ROOT_FOLDER=${SED_ROOT_FOLDER}"
 echo "  APPS_REPOSITORY=${APPS_REPOSITORY_ESCAPED}"
+echo "  STORAGE_PATH=${STORAGE_PATH_ESCAPED}"
 
 for template in ${ENV_FILE}; do
   sed -i "s/<dns_ip>/${DNS_IP}/g" "${template}"
@@ -240,6 +249,7 @@ for template in ${ENV_FILE}; do
   sed -i "s/<apps_repo_id>/${REPO_ID}/g" "${template}"
   sed -i "s/<apps_repo_url>/${APPS_REPOSITORY_ESCAPED}/g" "${template}"
   sed -i "s/<domain>/${DOMAIN}/g" "${template}"
+  sed -i "s/<storage_path>/${STORAGE_PATH_ESCAPED}/g" "${template}"
 done
 
 mv -f "$ENV_FILE" "$ROOT_FOLDER/.env"

@@ -19,6 +19,7 @@ ENV_FILE="${ROOT_FOLDER}/.env"
 # Root folder in host system
 ROOT_FOLDER_HOST=$(grep -v '^#' "${ENV_FILE}" | xargs -n 1 | grep ROOT_FOLDER_HOST | cut -d '=' -f2)
 REPO_ID=$(grep -v '^#' "${ENV_FILE}" | xargs -n 1 | grep APPS_REPO_ID | cut -d '=' -f2)
+STORAGE_PATH=$(grep -v '^#' "${ENV_FILE}" | xargs -n 1 | grep STORAGE_PATH | cut -d '=' -f2)
 
 # Get field from json file
 function get_json_field() {
@@ -49,7 +50,7 @@ else
     cp -r "${ROOT_FOLDER}/repos/${REPO_ID}/apps/${app}"/* "${app_dir}"
   fi
 
-  app_data_dir="${ROOT_FOLDER}/app-data/${app}"
+  app_data_dir="${STORAGE_PATH}/app-data/${app}"
 
   if [[ -z "${app}" ]] || [[ ! -d "${app_dir}" ]]; then
     echo "Error: \"${app}\" is not a valid app"
@@ -86,8 +87,12 @@ compose() {
   local common_compose_file="${ROOT_FOLDER}/repos/${REPO_ID}/apps/docker-compose.common.yml"
 
   # Vars to use in compose file
-  export APP_DATA_DIR="${ROOT_FOLDER_HOST}/app-data/${app}"
+  export APP_DATA_DIR="${STORAGE_PATH}/app-data/${app}"
   export ROOT_FOLDER_HOST="${ROOT_FOLDER_HOST}"
+
+  echo "Running docker-compose -f ${app_compose_file} -f ${common_compose_file} ${*}"
+  echo "APP_DATA_DIR=${APP_DATA_DIR}"
+  echo "ROOT_FOLDER_HOST=${ROOT_FOLDER_HOST}"
 
   docker compose \
     --env-file "${app_data_dir}/app.env" \

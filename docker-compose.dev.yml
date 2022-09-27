@@ -56,6 +56,7 @@ services:
       - ${PWD}:/runtipi
       - ${PWD}/packages/system-api/src:/api/src
       - ${PWD}/logs:/api/logs
+      - ${STORAGE_PATH}:/api/storage
       # - /api/node_modules
     environment:
       INTERNAL_IP: ${INTERNAL_IP}
