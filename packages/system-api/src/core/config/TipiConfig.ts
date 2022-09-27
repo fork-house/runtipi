@@ -20,6 +20,7 @@ const {
   APPS_REPO_ID = '',
   APPS_REPO_URL = '',
   DOMAIN = '',
+  STORAGE_PATH = '',
 } = process.env;
 
 const configSchema = z.object({
@@ -39,6 +40,7 @@ const configSchema = z.object({
   appsRepoId: z.string(),
   appsRepoUrl: z.string(),
   domain: z.string(),
+  storagePath: z.string(),
 });
 
 class Config {
@@ -64,6 +66,7 @@ class Config {
       domain: DOMAIN,
       dnsIp: '9.9.9.9',
       status: 'RUNNING',
+      storagePath: STORAGE_PATH,
     };
 
     const parsed = configSchema.parse({

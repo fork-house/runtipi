@@ -2,24 +2,17 @@
 
 # Required Notice: Copyright
 # Umbrel (https://umbrel.com)
-
 set -e # Exit immediately if a command exits with a non-zero status.
+
+source "${BASH_SOURCE%/*}/common.sh"
 
 NGINX_PORT=80
 NGINX_PORT_SSL=443
 DOMAIN=tipi.localhost
 
-# Check we are on linux
-if [[ "$(uname)" != "Linux" ]]; then
-  echo "Tipi only works on Linux"
-  exit 1
-fi
-
-# Ensure BASH_SOURCE is ./scripts/start.sh
-if [[ $(basename "$(pwd)") != "runtipi" ]] || [[ ! -f "${BASH_SOURCE[0]}" ]]; then
-  echo "Please make sure this script is executed from runtipi/"
-  exit 1
-fi
+ensure_linux
+ensure_pwd
+ensure_root
 
 NETWORK_INTERFACE="$(ip route | grep default | awk '{print $5}' | uniq)"
 INTERNAL_IP="$(ip addr show "${NETWORK_INTERFACE}" | grep "inet " | awk '{print $2}' | cut -d/ -f1)"
@@ -102,38 +95,8 @@ if [[ "$ARCHITECTURE" == "aarch64" ]]; then
   ARCHITECTURE="arm64"
 fi
 
-if [[ $UID != 0 ]]; then
-  echo "Tipi must be started as root"
-  echo "Please re-run this script as"
-  echo "  sudo ./scripts/start"
-  exit 1
-fi
-
 # Configure Tipi if it isn't already configured
 "${ROOT_FOLDER}/scripts/configure.sh"
-
-# Get field from json file
-function get_json_field() {
-  local json_file="$1"
-  local field="$2"
-
-  jq -r ".${field}" "${json_file}"
-}
-
-# Deterministically derives 128 bits of cryptographically secure entropy
-function derive_entropy() {
-  SEED_FILE="${STATE_FOLDER}/seed"
-  identifier="${1}"
-  tipi_seed=$(cat "${SEED_FILE}") || true
-
-  if [[ -z "$tipi_seed" ]] || [[ -z "$identifier" ]]; then
-    echo >&2 "Missing derivation parameter, this is unsafe, exiting."
-    exit 1
-  fi
-
-  # We need `sed 's/^.* //'` to trim the "(stdin)= " prefix from some versions of openssl
-  printf "%s" "${identifier}" | openssl dgst -sha256 -hmac "${tipi_seed}" | sed 's/^.* //'
-}
 
 # Copy the config sample if it isn't here
 if [[ ! -f "${STATE_FOLDER}/apps.json" ]]; then

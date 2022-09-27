@@ -115,6 +115,10 @@ export const generateEnvFile = (app: App) => {
     envFile += `APP_DOMAIN=${internalIp}:${configFile.port}\n`;
   }
 
+  // TODO: write to storagePath
+  const { storagePath } = getConfig();
+  console.log('yolo', storagePath);
+
   writeFile(`/app-data/${app.id}/app.env`, envFile);
 };
 
