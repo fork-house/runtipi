@@ -6,6 +6,7 @@ import { AppInfo, AppStatusEnum } from './apps.types';
 import logger from '../../config/logger/logger';
 import App from './app.entity';
 import { getConfig } from '../../core/config/TipiConfig';
+import fs from 'fs-extra';
 
 const { appsRepoId, internalIp } = getConfig();
 
@@ -115,11 +116,12 @@ export const generateEnvFile = (app: App) => {
     envFile += `APP_DOMAIN=${internalIp}:${configFile.port}\n`;
   }
 
-  // TODO: write to storagePath
-  const { storagePath } = getConfig();
-  console.log('yolo', storagePath);
+  // Create app-data folder if it doesn't exist
+  if (!fs.existsSync(`/app/storage/app-data/${app.id}`)) {
+    fs.mkdirSync(`/app/storage/app-data/${app.id}`, { recursive: true });
+  }
 
-  writeFile(`/app-data/${app.id}/app.env`, envFile);
+  writeFile(`/app/storage/app-data/${app.id}/app.env`, envFile);
 };
 
 export const getAvailableApps = async (): Promise<string[]> => {

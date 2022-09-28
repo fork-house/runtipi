@@ -10,12 +10,11 @@ function get_json_field() {
 
 function write_log() {
     local message="$1"
-    local log_file="/api/logs/script.log"
+    local log_file="/app/logs/script.log"
 
     echo "$(date) - ${message}" >>"${log_file}"
 }
 
-# Deterministically derives 128 bits of cryptographically secure entropy
 function derive_entropy() {
     SEED_FILE="${STATE_FOLDER}/seed"
     identifier="${1}"
@@ -26,7 +25,6 @@ function derive_entropy() {
         exit 1
     fi
 
-    # We need `sed 's/^.* //'` to trim the "(stdin)= " prefix from some versions of openssl
     printf "%s" "${identifier}" | openssl dgst -sha256 -hmac "${tipi_seed}" | sed 's/^.* //'
 }
 
@@ -54,5 +52,20 @@ function ensure_linux() {
     if [[ "$(uname)" != "Linux" ]]; then
         echo "Tipi only works on Linux"
         exit 1
+    fi
+}
+
+function clean_logs() {
+    # Clean logs folder
+    logs_folder="${ROOT_FOLDER}/logs"
+    if [ "$(find "${logs_folder}" -maxdepth 1 -type f | wc -l)" -gt 0 ]; then
+        echo "Cleaning logs folder..."
+
+        files=($(ls -d "${logs_folder}"/* | xargs -n 1 basename | sed 's/\///g'))
+
+        for file in "${files[@]}"; do
+            echo "Removing ${file}"
+            rm -rf "${ROOT_FOLDER}/logs/${file}"
+        done
     fi
 }

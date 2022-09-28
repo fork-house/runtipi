@@ -2,6 +2,8 @@
 # Required Notice: Copyright
 # Umbrel (https://umbrel.com)
 
+echo "Starting app script"
+
 source "${BASH_SOURCE%/*}/common.sh"
 
 set -euo pipefail
@@ -34,7 +36,6 @@ else
 fi
 
 if [ -z ${2+x} ]; then
-  show_help
   exit 1
 else
   app="$2"
@@ -48,7 +49,7 @@ else
     cp -r "${ROOT_FOLDER}/repos/${REPO_ID}/apps/${app}"/* "${app_dir}"
   fi
 
-  app_data_dir="${STORAGE_PATH}/app-data/${app}"
+  app_data_dir="/app/storage/app-data/${app}"
 
   if [[ -z "${app}" ]] || [[ ! -d "${app_dir}" ]]; then
     echo "Error: \"${app}\" is not a valid app"
@@ -79,6 +80,11 @@ compose() {
   # Pick arm architecture if running on arm and if the app has a docker-compose.arm.yml file
   if [[ "$architecture" == "arm"* ]] && [[ -f "${app_dir}/docker-compose.arm.yml" ]]; then
     app_compose_file="${app_dir}/docker-compose.arm.yml"
+  fi
+
+  # Pick arm architecture if running on arm and if the app has a docker-compose.arm64.yml file
+  if [[ "$architecture" == "arm64" ]] && [[ -f "${app_dir}/docker-compose.arm64.yml" ]]; then
+    app_compose_file="${app_dir}/docker-compose.arm64.yml"
   fi
 
   local common_compose_file="${ROOT_FOLDER}/repos/${REPO_ID}/apps/docker-compose.common.yml"

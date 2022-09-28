@@ -30,7 +30,7 @@ export const readdirSync = (path: string): string[] => fs.readdirSync(getAbsolut
 
 export const fileExists = (path: string): boolean => fs.existsSync(getAbsolutePath(path));
 
-export const writeFile = (path: string, data: any) => fs.writeFileSync(getAbsolutePath(path), data);
+export const writeFile = (path: string, data: any) => fs.writeFileSync(path, data);
 
 export const createFolder = (path: string) => {
   if (!fileExists(path)) {
